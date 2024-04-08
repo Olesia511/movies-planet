@@ -13,13 +13,16 @@ import Movies from './features/Movies/Movies';
 import { Provider } from 'react-redux';
 import store from './store';
 import Home from './features/Home/Home';
+import { ErrorBoundary } from './ErrorBoundary';
 
 const router = createBrowserRouter([
   {
     path: "/",
     element:
       <Provider store={store}>
-        <App />
+        <ErrorBoundary>
+          <App />          
+        </ErrorBoundary>
       </Provider>,
     
     children: [

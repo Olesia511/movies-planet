@@ -10,7 +10,7 @@ export interface Movie {
     image?: string,
 }
 
-interface MoviesState {
+export interface MoviesState {
     top: Movie[],
     loading: boolean,
 }
