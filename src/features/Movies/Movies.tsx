@@ -1,30 +1,34 @@
-import { Movie, fetchMovies} from "../../reducers/movies";
-import { connect } from "react-redux";
+import {  fetchNextPage} from "../../reducers/moviesSlice";
+import { connect, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { MovieCard } from "./MovieCard";
 
 import { useContext, useEffect } from "react";
-import { useAppDispatch } from "../../hooks";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 import { Container, Grid, LinearProgress, Typography } from "@mui/material";
 import { AuthContext, anonymousUser } from "../../AuthContext";
+import { useIntersectionObserver } from "../hooks/useIntersectionObserver";
 
 
-interface MoviesProps {
-    movies: Movie[],
-    loading: boolean,
-}
-
-function Movies({ movies, loading }: MoviesProps) {
+function Movies() {
     const dispatch = useAppDispatch();
+    const movies = useAppSelector((state) => state.movies.top);
+    const loading = useAppSelector((state) => state.movies.loading);
+    const hasMorePages = useAppSelector((state) => state.movies.hasMorePages);   
+
     
     const {user} = useContext(AuthContext);
     const loggedIn = user !== anonymousUser;
 
+    const [targetRef, entry] = useIntersectionObserver();
+
     useEffect(() => {
-        dispatch(fetchMovies());
+        if (entry?.isIntersecting && hasMorePages) {
+            dispatch(fetchNextPage());
+        }
 
 
-    }, [dispatch])
+    }, [dispatch, entry?.isIntersecting, hasMorePages])
     
     return (
         <Container sx={{ py: 8 }} maxWidth="lg" >
@@ -32,7 +36,7 @@ function Movies({ movies, loading }: MoviesProps) {
                 Now playing
             </Typography>
 
-            {loading ? (<LinearProgress color="secondary" />) :
+            
                 <Grid container spacing={4}>
                     {movies.map((m) => (
                     <Grid item key={m.id} xs={12} sm={6} md={4}>
@@ -45,11 +49,12 @@ function Movies({ movies, loading }: MoviesProps) {
                             image={m.image}
                             enableUserActoins={loggedIn}
                         />
-                    </Grid>
-                ))
+                        </Grid>
+                    ))
                 }
                 </Grid>
-            }
+            <div ref={targetRef}>
+                {loading && <LinearProgress color="secondary" sx={{ mt: 3 }} />}</div>
         </Container>
     )
 }
